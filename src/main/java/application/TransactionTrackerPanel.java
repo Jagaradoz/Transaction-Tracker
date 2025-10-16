@@ -314,7 +314,7 @@ public class TransactionTrackerPanel extends JPanel {
         int income = 0;
         int expense = 0;
 
-        // Either incomeor expense can input.
+        // Either income or expense can input.
         if (!incomeText.isBlank() && !incomeText.isEmpty()) income = Integer.parseInt(incomeText);
         else if (!expenseText.isBlank() && !expenseText.isEmpty()) expense = Integer.parseInt(expenseText);
         else return null;
@@ -323,24 +323,33 @@ public class TransactionTrackerPanel extends JPanel {
         String id = UUID.randomUUID().toString();
 
         RecordComponent newRecord = new RecordComponent(this, id, detailText, income, expense);
-
         records.add(newRecord);
 
         // Update UI
         updatePanelForScrollPane();
         updateHeaderListPanel();
 
-        String pathFileName = String.format("%s.ser", id);
+        // Ensure data folder exists
+        File dataFolder = new File("data");
+        if (!dataFolder.exists()) {
+            boolean created = dataFolder.mkdirs();
+            if (!created) {
+                System.out.println("Failed to create data folder.");
+                return null;
+            }
+        }
 
-        // Write record into .ser file.
-        try (ObjectOutputStream objectOut = new ObjectOutputStream(
-                new FileOutputStream("data/" + pathFileName))) {
+        String pathFileName = String.format("%s.ser", id);
+        File outputFile = new File(dataFolder, pathFileName);
+
+        // Write record into .ser file
+        try (ObjectOutputStream objectOut = new ObjectOutputStream(new FileOutputStream(outputFile))) {
             objectOut.writeObject(newRecord);
 
-            // Clear Input.
+            // Clear Input
             clearInput();
 
-            // Return new record for testing.
+            // Return new record for testing
             return newRecord;
         } catch (IOException ex) {
             System.out.println("Error writing object to file: " + ex.getMessage());
